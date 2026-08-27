@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Stacks — Research Directory for Community College Students</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#E4E6EA;
+    --bg-2:#FFFFFF;
+    --ink:#14181F;
+    --muted:#6B7280;
+    --line:#E4E6EA;
+    --blue:#3454D1;
+    --blue-soft:#D6DEF7;
+    --gold:#C98A2B;
+    --gold-soft:#F0E1BF;
+    --green:#2F8F5B;
+    --green-soft:#CFE9DA;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.55;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{ font-family:'Inter', sans-serif; font-weight:800; letter-spacing:-0.03em; margin:0; }
+  .mono{ font-family:'JetBrains Mono', monospace; letter-spacing:0.02em; }
+  a{ color:var(--blue); }
+
+  /* transitions, used sparingly and consistently */
+  .catalog-card, .filter-btn, .btn, .copy-btn, .nav-links a, .card-link{
+    transition: transform 0.4s cubic-bezier(.22,1,.36,1), box-shadow 0.4s cubic-bezier(.22,1,.36,1), background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, border-color 0.3s ease;
+  }
+  .reveal{
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity 0.8s cubic-bezier(.22,1,.36,1), transform 0.8s cubic-bezier(.22,1,.36,1);
+  }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ambient blurred background */
+  .bg-blobs{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .blob{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:0.8;
+    will-change:transform;
+  }
+  .blob-1{
+    width:520px; height:520px;
+    background:var(--blue-soft);
+    top:-160px; left:-120px;
+    animation:drift1 26s ease-in-out infinite alternate;
+  }
+  .blob-2{
+    width:460px; height:460px;
+    background:var(--gold-soft);
+    top:20%; right:-160px;
+    animation:drift2 30s ease-in-out infinite alternate;
+  }
+  .blob-3{
+    width:420px; height:420px;
+    background:var(--green-soft);
+    bottom:-180px; left:30%;
+    animation:drift3 34s ease-in-out infinite alternate;
+  }
+  @keyframes drift1{ from{ transform:translate(0,0) scale(1); } to{ transform:translate(60px,40px) scale(1.08); } }
+  @keyframes drift2{ from{ transform:translate(0,0) scale(1); } to{ transform:translate(-50px,60px) scale(1.05); } }
+  @keyframes drift3{ from{ transform:translate(0,0) scale(1); } to{ transform:translate(40px,-50px) scale(1.1); } }
+  @media (prefers-reduced-motion: reduce){
+    .blob{ animation:none !important; }
+    .reveal, .catalog-card, .filter-btn, .btn, .copy-btn{ transition:none !important; }
+  }
+
+  /* NAV */
+  nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 32px;
+    background:rgba(228,230,234,0.55);
+    backdrop-filter:blur(8px);
+    position:sticky;
+    top:0;
+    z-index:50;
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:1.1rem;
+    color:var(--ink);
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .logo .tab{
+    background:var(--blue);
+    color:#fff;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    padding:2px 6px;
+    border-radius:3px;
+    font-weight:500;
+  }
+  .nav-links{display:flex; gap:28px;}
+  .nav-links a{
+    color:var(--muted);
+    text-decoration:none;
+    font-size:0.88rem;
+    font-weight:600;
+  }
+  .nav-links a:hover{ color:var(--ink); }
+
+  /* HERO */
+  .hero{
+    padding:96px 24px 80px;
+    position:relative;
+  }
+  .hero-inner{
+    max-width:720px;
+    margin:0 auto;
+    text-align:center;
+  }
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    color:var(--blue);
+    background:var(--blue-soft);
+    padding:6px 14px;
+    border-radius:20px;
+    margin-bottom:24px;
+  }
+  .hero h1{
+    font-size:clamp(2.6rem, 6vw, 4rem);
+    font-weight:700;
+    line-height:1.02;
+    margin-bottom:20px;
+    letter-spacing:-0.02em;
+  }
+  .hero p{
+    color:var(--muted);
+    font-size:1.15rem;
+    max-width:560px;
+    margin:0 auto 36px;
+  }
+  .btn-row{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+  .btn{
+    font-family:'Inter', sans-serif;
+    font-size:0.95rem;
+    padding:13px 24px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:600;
+    border:1px solid transparent;
+    cursor:pointer;
+    display:inline-block;
+  }
+  .btn-primary{ background:var(--ink); color:#fff; }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(20,24,31,0.18); }
+  .btn-ghost{ background:#fff; color:var(--ink); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--ink); transform:translateY(-2px); }
+
+  /* MISSION STRIP */
+  .mission{
+    background:rgba(255,255,255,0.22);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:40px 24px;
+  }
+  .mission-inner{
+    max-width:980px;
+    margin:0 auto;
+    display:flex;
+    gap:32px;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .mission p{ max-width:480px; margin:0; font-size:1rem; color:var(--muted); }
+  .stats{display:flex; gap:36px; flex-wrap:wrap;}
+  .stat{text-align:center;}
+  .stat .num{
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:1.9rem;
+    color:var(--ink);
+  }
+  .stat .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.65rem;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* DIRECTORY */
+  .directory{
+    max-width:1100px;
+    margin:0 auto;
+    padding:72px 24px 40px;
+  }
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-bottom:28px;
+  }
+  .section-head h2{ font-size:1.9rem; letter-spacing:-0.01em; }
+  .section-head .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    color:var(--muted);
+  }
+  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:32px;}
+  .filter-btn{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    padding:9px 16px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--muted);
+    border-radius:20px;
+    cursor:pointer;
+  }
+  .filter-btn:hover{ border-color:var(--ink); color:var(--ink); }
+  .filter-btn.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:20px;
+  }
+  .catalog-card{
+    background:rgba(255,255,255,0.35);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(20,24,31,0.08);
+    border-radius:14px;
+    padding:22px 22px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .catalog-card.fading{ opacity:0; transform:translateY(6px) scale(0.98); pointer-events:none; }
+  .catalog-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 12px 28px rgba(20,24,31,0.08);
+    border-color:transparent;
+  }
+  .call-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:var(--blue);
+  }
+  .catalog-card h3{ font-size:1.15rem; line-height:1.25; }
+  .org{ font-size:0.9rem; color:var(--muted); font-weight:600; }
+  .meta-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:2px; }
+  .badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.65rem;
+    padding:4px 9px;
+    border-radius:6px;
+  }
+  .badge-cc{ background:var(--green-soft); color:var(--green); }
+  .badge-field{ background:var(--blue-soft); color:var(--blue); }
+  .badge-loc{ background:var(--gold-soft); color:var(--gold); }
+  .card-desc{ font-size:0.92rem; color:var(--muted); flex-grow:1; }
+  .card-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+    margin-top:4px;
+  }
+  .deadline{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:var(--gold);
+    font-weight:500;
+  }
+  .card-link{
+    font-family:'Inter', sans-serif;
+    font-size:0.85rem;
+    font-weight:700;
+    text-decoration:none;
+    color:var(--ink);
+  }
+  .card-link:hover{ color:var(--blue); }
+
+  .note-strip{
+    max-width:1100px;
+    margin:8px auto 0;
+    padding:0 24px 40px;
+    font-size:0.85rem;
+    color:var(--muted);
+    font-style:italic;
+  }
+
+  .updated-strip{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+  .updated-strip .dot{ width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; }
+  .updated-strip .new-tag{
+    background:var(--green-soft);
+    color:var(--green);
+    padding:2px 8px;
+    border-radius:10px;
+    font-weight:600;
+  }
+
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .sort-select{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    padding:9px 14px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+    border-radius:20px;
+    cursor:pointer;
+  }
+
+  .soon-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    background:var(--gold);
+    color:#fff;
+    padding:2px 7px;
+    border-radius:10px;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+
+  /* SIGNUP */
+  .signup-section{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 24px 64px;
+  }
+  .signup-card{
+    background:rgba(255,255,255,0.4);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(20,24,31,0.08);
+    border-radius:16px;
+    padding:32px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:24px;
+    flex-wrap:wrap;
+  }
+  .signup-card h3{ font-size:1.25rem; margin-bottom:6px; }
+  .signup-card p{ margin:0; color:var(--muted); font-size:0.92rem; max-width:380px; }
+  .signup-form{ display:flex; gap:8px; flex-wrap:wrap; }
+  .signup-form input{
+    font-family:'Inter', sans-serif;
+    font-size:0.9rem;
+    padding:12px 16px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    min-width:220px;
+    background:#fff;
+  }
+  .signup-form button{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    padding:12px 20px;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .signup-form button:hover{ transform:translateY(-2px); }
+  .form-note{ width:100%; font-size:0.78rem; color:var(--muted); margin-top:4px; }
+
+  /* SUGGEST A LISTING */
+  .suggest-section{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 24px 72px;
+  }
+  .suggest-card{
+    background:rgba(255,255,255,0.4);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(20,24,31,0.08);
+    border-radius:16px;
+    padding:32px;
+  }
+  .suggest-card h3{ font-size:1.25rem; margin-bottom:6px; }
+  .suggest-card p.lead{ margin:0 0 20px; color:var(--muted); font-size:0.92rem; }
+  .suggest-form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .suggest-form .full{ grid-column:1 / -1; }
+  .suggest-form label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    color:var(--muted);
+    display:block;
+    margin-bottom:6px;
+    text-transform:uppercase;
+  }
+  .suggest-form input, .suggest-form textarea{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-size:0.9rem;
+    padding:11px 14px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    resize:vertical;
+  }
+  .suggest-form button{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+    padding:12px 22px;
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    justify-self:start;
+  }
+  .suggest-form button:hover{ transform:translateY(-2px); }
+
+  .feedback-line{
+    margin-top:8px;
+    font-size:0.78rem;
+  }
+  .feedback-line a{ color:#8FA0E8; text-decoration:none; }
+  .feedback-line a:hover{ text-decoration:underline; }
+
+  /* APPLICATION HELP */
+  .apply-section{
+    background:var(--ink);
+    padding:72px 24px;
+  }
+  .apply-inner{ max-width:1100px; margin:0 auto; }
+  .apply-inner .section-head h2, .apply-inner .section-head .tag{ color:#fff; }
+  .apply-inner .section-head .tag{ color:#9AA3B2; }
+  .template-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(320px,1fr));
+    gap:22px;
+  }
+  .notebook{
+    background:#1D2230;
+    border-radius:14px;
+    padding:26px 26px 22px;
+  }
+  .notebook h3{ font-size:1.2rem; margin-bottom:4px; color:#fff; }
+  .notebook .sub{ font-family:'JetBrains Mono', monospace; font-size:0.72rem; color:#8FA0E8; margin-bottom:16px; display:block; }
+  .notebook pre{
+    white-space:pre-wrap;
+    font-family:'Inter', sans-serif;
+    font-size:0.88rem;
+    color:#C9CEDA;
+    background:#161A24;
+    padding:16px;
+    border-radius:10px;
+    max-height:260px;
+    overflow-y:auto;
+    margin:0 0 16px;
+  }
+  .copy-btn{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    padding:9px 16px;
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .copy-btn:hover{ transform:translateY(-1px); }
+  .copy-btn.copied{ background:var(--green); }
+
+  footer{
+    text-align:center;
+    padding:36px 24px 52px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blobs" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<nav>
+  <a href="#" class="logo">THE STACKS <span class="tab">v0.2</span></a>
+  <div class="nav-links">
+    <a href="#directory">Directory</a>
+    <a href="#apply">Apply</a>
+    <a href="#about">About</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner reveal">
+    <span class="eyebrow">built for community college students — open to anyone chasing a research opportunity</span>
+    <h1>THE STACKS</h1>
+    <p>A nationwide directory of research opportunities with universities and companies. Built first for community college students, who usually don't have a research office doing the legwork for them — but useful for any undergrad, at a CC or a four-year, looking for a way in.</p>
+    <div class="btn-row">
+      <a href="#directory" class="btn btn-primary">Browse the directory</a>
+      <a href="#apply" class="btn btn-ghost">Get application help</a>
+    </div>
+  </div>
+</header>
+
+<section class="mission">
+  <div class="mission-inner reveal">
+    <p>Most research pipelines assume you're at a four-year school with an undergrad research office doing the legwork for you. This directory started for the students that assumption leaves out — but the listings, eligibility notes, and templates work just as well if you're at a four-year school too.</p>
+    <div class="stats">
+      <div class="stat"><div class="num">7</div><div class="label">Listings so far</div></div>
+      <div class="stat"><div class="num">50</div><div class="label">States eligible</div></div>
+      <div class="stat"><div class="num">$0</div><div class="label">Cost to use</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="directory" id="directory">
+  <div class="section-head reveal">
+    <h2>The Directory</h2>
+    <span class="tag mono">CC-friendly first, open to all undergrads — seeded manually for now</span>
+  </div>
+
+  <div class="updated-strip reveal">
+    <span class="dot"></span> Last updated Aug 25, 2026
+    <span class="new-tag">+3 new listings this week</span>
+  </div>
+
+  <div class="toolbar reveal">
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-filter="all">All fields</button>
+      <button class="filter-btn" data-filter="bio">Bio & Health</button>
+      <button class="filter-btn" data-filter="eng">Engineering & CS</button>
+      <button class="filter-btn" data-filter="env">Environmental</button>
+      <button class="filter-btn" data-filter="space">Space & Aero</button>
+      <button class="filter-btn" data-filter="social">Social Science</button>
+      <button class="filter-btn" data-filter="general">Any Field</button>
+    </div>
+    <select class="sort-select" id="sort-select">
+      <option value="soonest">Sort: soonest deadline</option>
+      <option value="az">Sort: A–Z</option>
+    </select>
+  </div>
+
+  <div class="card-grid" id="card-grid">
+
+    <div class="catalog-card reveal" data-field="eng" data-month="3">
+      <span class="call-num">REU.014.NE</span>
+      <h3>NSF REU‑PATHWAYS</h3>
+      <span class="org">Northeastern University</span>
+      <div class="meta-row">
+        <span class="badge badge-cc">CC-only program</span>
+        <span class="badge badge-field">Engineering</span>
+        <span class="badge badge-loc">Boston, MA (in‑person)</span>
+      </div>
+      <p class="card-desc">10‑week hands‑on engineering research experience built specifically for community college students, with a $6,000 stipend, short courses, and career workshops. Must be able to commute daily to campus.</p>
+      <div class="card-foot">
+        <span class="deadline">deadline ~ March 1</span>
+        <a class="card-link" href="https://stem.northeastern.edu/reu2025-apps/" target="_blank" rel="noopener">View program →</a>
+      </div>
+    </div>
+
+    <div class="catalog-card reveal" data-field="bio" data-rolling="true">
+      <span class="call-num">CCOP.002.SF</span>
+      <h3>Community College Outreach Partnership (CCOP)</h3>
+      <span class="org">Stanford University</span>
+      <div class="meta-row">
+        <span class="badge badge-cc">CC-only program</span>
+        <span class="badge badge-field">Bio & Engineering</span>
+        <span class="badge badge-loc">Bay Area, CA</span>
+      </div>
+      <p class="card-desc">Paid 10‑week, full‑time summer research position in a Stanford biosciences or engineering lab. Topics span stem cells, neuroscience, gene regulation, and data science. Built specifically for Bay Area community college students.</p>
+      <div class="card-foot">
+        <span class="deadline">rolling, opens winter</span>
+        <a class="card-link" href="https://www.ccop.stanford.edu/apply-now" target="_blank" rel="noopener">View program →</a>
+      </div>
+    </div>
+
+    <div class="catalog-card reveal" data-field="env" data-month="3">
+      <span class="call-num">REU.108.B2</span>
+      <h3>Biosphere 2 REU</h3>
+      <span class="org">University of Arizona / NSF</span>
+      <div class="meta-row">
+        <span class="badge badge-field">Environmental Science</span>
+        <span class="badge badge-loc">Tucson, AZ</span>
+      </div>
+      <p class="card-desc">10‑week guided research on environmental and Earth systems science at the Biosphere 2 campus. $6,000 stipend, housing, food allowance, and travel to a professional conference included. NSF explicitly encourages applicants from schools without strong research infrastructure, which includes community colleges.</p>
+      <div class="card-foot">
+        <span class="deadline">rolling from March 1</span>
+        <a class="card-link" href="https://biosphere2.org/education/university-programs/research-experiences-undergrads-reu" target="_blank" rel="noopener">View program →</a>
+      </div>
+    </div>
+
+    <div class="catalog-card reveal" data-field="space" data-month="2">
+      <span class="call-num">NASA.OSTEM.NAT</span>
+      <h3>NASA OSTEM Internships</h3>
+      <span class="org">NASA (multiple centers)</span>
+      <div class="meta-row">
+        <span class="badge badge-field">Space & Aerospace</span>
+        <span class="badge badge-loc">Nationwide / remote options</span>
+      </div>
+      <p class="card-desc">Paid internships across NASA centers in science, tech, aeronautics, and space exploration, open to college-level students including community college. Offered in three sessions a year (spring, summer, fall), full or part time depending on role.</p>
+      <div class="card-foot">
+        <span class="deadline">summer deadline ~ Feb 26</span>
+        <a class="card-link" href="https://www.nasa.gov/learning-resources/internship-programs/" target="_blank" rel="noopener">View program →</a>
+      </div>
+    </div>
+
+    <div class="catalog-card reveal" data-field="general" data-month="2">
+      <span class="call-num">UROP.CCSFP.MI</span>
+      <h3>Community College Summer Fellowship Program</h3>
+      <span class="org">University of Michigan (UROP)</span>
+      <div class="meta-row">
+        <span class="badge badge-cc">CC-only program</span>
+        <span class="badge badge-field">Any research field</span>
+        <span class="badge badge-loc">Ann Arbor, MI</span>
+      </div>
+      <p class="card-desc">Paid 10‑week, in‑person research fellowship open to any field of study, built for Michigan community college students considering a transfer. Pairs each student with a faculty mentor and covers travel and housing support.</p>
+      <div class="card-foot">
+        <span class="deadline">deadline ~ Feb 6</span>
+        <a class="card-link" href="https://lsa.umich.edu/urop/prospective-students/summer-programs/community-college-summer-research-fellowship.html" target="_blank" rel="noopener">View program →</a>
+      </div>
+    </div>
+
+    <div class="catalog-card reveal" data-field="eng" data-month="4">
+      <span class="call-num">REU.VERSA.SD</span>
+      <h3>VERSA — STEM Education Research REU</h3>
+      <span class="org">UC San Diego / NSF</span>
+      <div class="meta-row">
+        <span class="badge badge-field">STEM Education Research</span>
+        <span class="badge badge-loc">San Diego, CA (hybrid)</span>
+      </div>
+      <p class="card-desc">9‑week hybrid REU studying how STEM education itself works, spanning biology, chemistry, computer science, physics, and psychology. A good fit if you're interested in research about teaching and learning, not just lab science.</p>
+      <div class="card-foot">
+        <span class="deadline">deadline ~ April 5</span>
+        <a class="card-link" href="https://reufinder.com/programs-for-community-college-students/" target="_blank" rel="noopener">View program →</a>
+      </div>
+    </div>
+
+    <div class="catalog-card reveal" data-field="social" data-month="1">
+      <span class="call-num">SPUR.PSYCH.CMU</span>
+      <h3>Summer Program for Undergraduate Researchers (SPUR)</h3>
+      <span class="org">Carnegie Mellon University</span>
+      <div class="meta-row">
+        <span class="badge badge-field">Psychology</span>
+        <span class="badge badge-loc">Pittsburgh, PA</span>
+      </div>
+      <p class="card-desc">Paid psychology research experience in developmental, cognitive neuroscience, or social health psychology labs. Explicitly geared toward students from resource-limited backgrounds and schools with fewer research opportunities.</p>
+      <div class="card-foot">
+        <span class="deadline">deadline ~ Jan 30</span>
+        <a class="card-link" href="https://www.cmu.edu/dietrich/psychology/spur/" target="_blank" rel="noopener">View program →</a>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="note-strip reveal">Seven hand-verified listings so far — check each program's own page for the current cycle's exact dates, since deadlines shift year to year. More get added as they're found; this list is meant to grow.</p>
+</section>
+
+<section class="signup-section">
+  <div class="signup-card reveal">
+    <div>
+      <h3>Get notified about new listings</h3>
+      <p>No spam, just an email when a new CC-friendly program gets added.</p>
+    </div>
+    <form class="signup-form" id="signup-form">
+      <input type="email" id="signup-email" placeholder="you@email.com" required>
+      <button type="submit">Notify me</button>
+      <span class="form-note">Opens your email app to confirm — this list isn't automated yet.</span>
+    </form>
+  </div>
+</section>
+
+<section class="apply-section" id="apply">
+  <div class="apply-inner">
+    <div class="section-head reveal">
+      <h2>Application Help</h2>
+      <span class="tag mono">the part a research office would normally do for you</span>
+    </div>
+    <div class="template-grid">
+
+      <div class="notebook reveal">
+        <h3>Cold Email to a PI</h3>
+        <span class="sub">the single biggest unlock if you don't have a listed opening to apply to</span>
+        <pre id="email-template">Subject: Undergraduate research interest — [Your Name], [Your College]
+
+Dear Dr. [Last Name],
+
+I'm a [year] student at [Community College], studying [major/focus]. I came across your work on [one specific thing from their lab page or a recent paper — be specific, this is what shows you actually looked], and I'm reaching out to ask whether you have any openings for an undergraduate researcher, paid or volunteer, for [semester/summer].
+
+A bit about me: [one or two lines — a relevant project, class, or hands-on skill. Concrete beats impressive: "built X" beats "passionate about science"].
+
+I understand community college students aren't always the first group labs think to include, but I'd welcome the chance to contribute and learn. Would you be open to a brief 15-minute call to discuss? I've attached my resume/transcript, and I'm happy to send anything else that would help.
+
+Thank you for your time,
+[Your Name]
+[Phone / email]</pre>
+        <button class="copy-btn" data-target="email-template">Copy template</button>
+        <p style="font-size:0.82rem; color:#8FA0E8; margin:10px 0 0; line-height:1.5;">Why this works: a specific ask (a short call) gets answered more than an open-ended "let me know." In a large lab, emailing a grad student or postdoc first often gets a faster, more honest response than going straight to the PI. No response after 1–2 weeks is normal — one polite follow-up is expected, more than that isn't.</p>
+        <div class="feedback-line"><a href="mailto:tristianpuga71@gmail.com?subject=Feedback%20on%20the%20cold%20email%20template" target="_blank">Did this template help? Let us know →</a></div>
+      </div>
+
+      <div class="notebook reveal">
+        <h3>Research Interest Statement</h3>
+        <span class="sub">1-page structure most REU/CCOP-style applications ask for</span>
+        <pre id="statement-template">1. OPENING (2-3 sentences)
+What pulled you toward this field. Be specific and personal — a class, a project, a problem you noticed — not a generic "I've always loved science" or a childhood origin story.
+
+2. WHAT YOU'VE ALREADY DONE (1 paragraph)
+Coursework, projects, hackathons, jobs — anything that shows initiative or hands-on ability, even outside a lab. Frame informal experience in research-relevant terms (e.g. troubleshooting, iteration, working with data).
+
+3. WHY THIS PROGRAM SPECIFICALLY (1 paragraph)
+Name the actual lab/focus area. Vague interest reads as a form letter; specific interest reads as someone who did the homework.
+
+4. ACCESS & CONTEXT, IF RELEVANT (2-3 sentences)
+If you're first-gen, low-income, or your school has limited research opportunities, say so directly. Many CC-friendly programs are funded specifically to reach students like you — this isn't oversharing, it's relevant.
+
+5. WHAT YOU WANT TO GET OUT OF IT (2-3 sentences)
+Tie it to a real next step — transfer major, grad school, a career direction — not just "an opportunity."
+
+6. CLOSING (1-2 sentences)
+Reaffirm interest, thank them for considering you.</pre>
+        <button class="copy-btn" data-target="statement-template">Copy template</button>
+        <p style="font-size:0.82rem; color:#8FA0E8; margin:10px 0 0; line-height:1.5;">Why this works: reviewers can tell a form letter instantly — tailor section 3 for every program you send this to. Avoid self-labeling like "I'm the ideal candidate;" let the specifics in sections 2 and 4 make that case instead.</p>
+        <div class="feedback-line"><a href="mailto:tristianpuga71@gmail.com?subject=Feedback%20on%20the%20research%20statement%20template" target="_blank">Did this template help? Let us know →</a></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="suggest-section" id="suggest">
+  <div class="suggest-card reveal">
+    <h3>Know a program that should be here?</h3>
+    <p class="lead">Suggest a listing — company or university, any field.</p>
+    <iframe data-tally-src="https://tally.so/embed/zx5G5M?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="400" frameborder="0" marginheight="0" marginwidth="0" title="The Stacks — Suggest a Listing"></iframe>
+  </div>
+</section>
+
+<footer id="about">
+  THE STACKS — built by a community college student, for community college students (and anyone else who finds it useful). A work in progress.
+</footer>
+
+<script>
+  // Scroll reveal — subtle, one-shot, staggered slightly by natural DOM order
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => io.observe(el));
+
+  // Filtering with a smooth cross-fade instead of a hard show/hide
+  const buttons = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.catalog-card');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      cards.forEach(card => {
+        const show = (filter === 'all' || card.dataset.field === filter);
+        if(show){
+          card.style.display = 'flex';
+          requestAnimationFrame(() => card.classList.remove('fading'));
+        } else {
+          card.classList.add('fading');
+          setTimeout(() => { if(card.classList.contains('fading')) card.style.display = 'none'; }, 220);
+        }
+      });
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      navigator.clipboard.writeText(target.innerText).then(() => {
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy template';
+          btn.classList.remove('copied');
+        }, 1800);
+      });
+    });
+  });
+
+  // Deadline urgency: tag the single non-rolling card whose deadline is coming up soonest from today
+  (function tagUpcoming(){
+    const now = new Date(2026, 7, 25); // Aug 25, 2026
+    const currentMonth = now.getMonth() + 1;
+    const grid = document.getElementById('card-grid');
+    const cardList = Array.from(grid.querySelectorAll('.catalog-card'));
+    let soonest = null;
+    let soonestDist = 99;
+    cardList.forEach(card => {
+      if(card.dataset.rolling) return;
+      const m = parseInt(card.dataset.month, 10);
+      if(!m) return;
+      const dist = (m - currentMonth + 12) % 12;
+      card.dataset.dist = dist;
+      if(dist < soonestDist){ soonestDist = dist; soonest = card; }
+    });
+    if(soonest){
+      const deadlineEl = soonest.querySelector('.deadline');
+      if(deadlineEl && !deadlineEl.querySelector('.soon-tag')){
+        const tag = document.createElement('span');
+        tag.className = 'soon-tag';
+        tag.textContent = 'opens soon';
+        deadlineEl.appendChild(tag);
+      }
+    }
+  })();
+
+  // Sort control — reorders the underlying cards; filtering still layers on top via display/fading
+  const sortSelect = document.getElementById('sort-select');
+  const grid = document.getElementById('card-grid');
+  function applySort(mode){
+    const cardList = Array.from(grid.querySelectorAll('.catalog-card'));
+    cardList.sort((a, b) => {
+      if(mode === 'az'){
+        const ta = a.querySelector('h3').textContent.trim();
+        const tb = b.querySelector('h3').textContent.trim();
+        return ta.localeCompare(tb);
+      }
+      // soonest: rolling cards go last, others by cyclic distance already computed
+      const aRoll = a.dataset.rolling ? 1 : 0;
+      const bRoll = b.dataset.rolling ? 1 : 0;
+      if(aRoll !== bRoll) return aRoll - bRoll;
+      const da = a.dataset.dist !== undefined ? parseInt(a.dataset.dist, 10) : 99;
+      const db = b.dataset.dist !== undefined ? parseInt(b.dataset.dist, 10) : 99;
+      return da - db;
+    });
+    cardList.forEach(card => grid.appendChild(card));
+  }
+  applySort('soonest');
+  sortSelect.addEventListener('change', () => applySort(sortSelect.value));
+
+  // Email signup — no backend yet, so this opens a pre-filled email as a placeholder
+  document.getElementById('signup-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signup-email').value;
+    const subject = encodeURIComponent('Add me to The Stacks notify list');
+    const body = encodeURIComponent('Please add this email to the notify list: ' + email);
+    window.location.href = `mailto:tristianpuga71@gmail.com?subject=${subject}&body=${body}`;
+  });
+</script>
+<script async src="https://tally.so/widgets/embed.js"></script>
+
+</body>
+</html>
